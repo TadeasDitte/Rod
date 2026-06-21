@@ -15,12 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('person_id')->constrained('people')->cascadeOnDelete();
 
-            $table->string('fact_type');
-            $table->text('fact_value');
-            $table->date('fact_date')->nullable();
-            $table->string('fact_place')->nullable();
-            $table->text('fact_notes')->nullable();
-            
+            $table->string('type');
+            $table->text('value')->nullable();
+            $table->string('date')->nullable();
+            $table->date('date_parsed')->nullable();
+            $table->string('place')->nullable();
+            $table->text('notes')->nullable();
+
             $table->timestamps();
         });
     }

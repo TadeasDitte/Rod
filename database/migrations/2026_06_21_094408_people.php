@@ -21,9 +21,11 @@ return new class extends Migration
             $table->string('suffix')->nullable();
             $table->string('gender');
 
-            $table->date('birth_date')->nullable();
+            $table->string('birth_date')->nullable();
+            $table->date('birth_date_parsed')->nullable();
             $table->string('birth_place')->nullable();
             $table->string('death_date')->nullable();
+            $table->date('death_date_parsed')->nullable();
             $table->string('death_place')->nullable();
 
             $table->text('notes')->nullable();
@@ -33,10 +35,11 @@ return new class extends Migration
         Schema::create('person_names', function (Blueprint $table) {
             $table->id();
             $table->foreignId('person_id')->constrained('people')->cascadeOnDelete();
-            $table->string('name_type');
+            $table->enum('name_type', ['primary', 'married', 'maiden', 'aka', 'nick']);
             $table->string('name');
-            $table->start_date()->nullable();
-            $table->end_date()->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -45,6 +48,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('person_names');
         Schema::dropIfExists('people');
     }
 };
