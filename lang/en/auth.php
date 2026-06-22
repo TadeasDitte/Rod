@@ -1,4 +1,5 @@
 <?php
+
 return [
     'log_in' => 'Login',
     'register' => 'Register',
