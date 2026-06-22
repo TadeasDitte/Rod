@@ -39,6 +39,7 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6.0.9
+        version: latest
 
       - name: Install Node Dependencies
         run: pnpm i
