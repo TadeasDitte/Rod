@@ -1,4 +1,5 @@
 <?php
+
 return [
     'log_in' => 'Prihlásiť sa',
     'register' => 'Registrovať sa',
