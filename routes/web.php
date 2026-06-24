@@ -5,13 +5,12 @@ use App\Http\Controllers\OauthController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
-Route::prefix('{locale?}')->group(function () {
-    Route::inertia('/', 'Welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ])->name('home');
-    Route::middleware(['auth', 'verified'])->group(function () {
-        Route::get('dashboard', DashboardController::class)->name('dashboard');
-    });
+Route::inertia('/', 'Welcome', [
+    'canRegister' => Features::enabled(Features::registration()),
+])->name('home');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 });
 
 Route::middleware('web')->group(function () {
