@@ -27,7 +27,7 @@ createInertiaApp({
     },
     withApp: (app) => {
         app.use(i18nVue, {
-            resolve: async (lang) => {
+            resolve: async (lang: string) => {
                 const langs = import.meta.glob('../../lang/php_*.json');
                 const loader = langs[`../../lang/php_${lang}.json`];
 

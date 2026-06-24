@@ -41,7 +41,23 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'locales' => config('app.available_locales'),
+            'oauthProviders' => $this->enabledOauthProviders(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    /**
+     * Get the list of OAuth providers that have credentials configured.
+     *
+     * @return list<string>
+     */
+    private function enabledOauthProviders(): array
+    {
+        $providers = ['google', 'github', 'discord'];
+
+        return array_values(array_filter($providers, function (string $provider): bool {
+            return config("services.{$provider}.client_id") && config("services.{$provider}.client_secret");
+        }));
     }
 }
