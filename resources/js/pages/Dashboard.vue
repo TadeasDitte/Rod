@@ -16,5 +16,4 @@ defineOptions({
 
 <template>
     <Head title="Dashboard" />
-
 </template>
