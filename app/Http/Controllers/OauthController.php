@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
@@ -103,6 +104,10 @@ class OauthController extends Controller
     {
         $email = $socialUser->getEmail();
 
+        if (! $email && $provider === 'github') {
+            $email = $this->resolveGithubEmail($socialUser);
+        }
+
         if (! $email) {
             return $this->redirectToLogin('sso.no_email');
         }
@@ -165,6 +170,75 @@ class OauthController extends Controller
                     : null,
             ],
         );
+    }
+
+    /**
+     * Resolve a GitHub user's email using multiple strategies.
+     *
+     * Works around a Socialite bug where getEmailByToken() can return null
+     * and overwrite a valid email from the /user endpoint. We try, in order:
+     *   1. /user/emails — primary + verified
+     *   2. /user/emails — any verified
+     *   3. /user/emails — any primary
+     *   4. /user/emails — any at all
+     *   5. /user — public email field
+     *   6. Constructed noreply address (id+login@users.noreply.github.com)
+     */
+    private function resolveGithubEmail(SocialiteUser $socialUser): ?string
+    {
+        $token = $socialUser->token;
+
+        if (! $token) {
+            return null;
+        }
+
+        $headers = [
+            'Accept' => 'application/vnd.github.v3+json',
+            'Authorization' => 'token '.$token,
+        ];
+
+        // 1–4. Try /user/emails with progressively relaxed filters
+        try {
+            $response = Http::withHeaders($headers)->get('https://api.github.com/user/emails');
+
+            if ($response->ok() && ($emails = $response->json())) {
+                foreach ([
+                    fn ($e) => ($e['primary'] ?? false) && ($e['verified'] ?? false),
+                    fn ($e) => ($e['verified'] ?? false),
+                    fn ($e) => ($e['primary'] ?? false),
+                    fn ($e) => true,
+                ] as $filter) {
+                    foreach ($emails as $email) {
+                        if ($filter($email) && ! empty($email['email'])) {
+                            return $email['email'];
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // Fall through to next strategy
+        }
+
+        // 5. Try /user endpoint for public email
+        try {
+            $response = Http::withHeaders($headers)->get('https://api.github.com/user');
+
+            if ($response->ok() && $response->json('email')) {
+                return $response->json('email');
+            }
+        } catch (\Throwable) {
+            // Fall through to noreply fallback
+        }
+
+        // 6. Construct GitHub noreply address as last resort
+        $id = $socialUser->getId();
+        $login = $socialUser->getNickname();
+
+        if ($id && $login) {
+            return "{$id}+{$login}@users.noreply.github.com";
+        }
+
+        return null;
     }
 
     /**

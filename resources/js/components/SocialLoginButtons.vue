@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,7 @@ const providers = computed<string[]>(() => {
                 variant="outline"
                 class="flex-1"
             >
-                <Link :href="`/auth/${provider}/redirect`">
+                <a :href="`/auth/${provider}/redirect`">
                     <span
                         v-if="provider === 'google'"
                         class="flex size-4 items-center justify-center"
@@ -81,7 +80,7 @@ const providers = computed<string[]>(() => {
                     <span class="capitalize">{{
                         $t('common.' + provider)
                     }}</span>
-                </Link>
+                </a>
             </Button>
         </div>
     </div>
